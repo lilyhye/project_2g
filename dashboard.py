@@ -8,10 +8,15 @@ from datetime import datetime, timedelta
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="금융 위기 대응 자산 배분 대시보드")
 
+import os
+
 # 1. 데이터 로드 및 전처리
 @st.cache_data
 def load_data():
-    file_path = "project_2g/data/finance_2020_data.csv"
+    # 현재 파일(dashboard.py)의 디렉토리를 기준으로 경로 설정
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(curr_dir, 'data', 'finance_2020_data.csv')
+    
     df = pd.read_csv(file_path)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
