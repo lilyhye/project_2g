@@ -11,7 +11,7 @@ st.set_page_config(layout="wide", page_title="금융 위기 대응 자산 배분
 # 1. 데이터 로드 및 전처리
 @st.cache_data
 def load_data():
-    file_path = "project2_2g/data/finance_2020_data.csv"
+    file_path = "project_2g/data/finance_2020_data.csv"
     df = pd.read_csv(file_path)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
