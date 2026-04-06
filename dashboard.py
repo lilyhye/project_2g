@@ -231,7 +231,7 @@ if not today_data.empty:
     with m2: st.metric("⭐ 최적 추천형 (4/2)", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
     with m3: st.metric("🔥 공격형 (4/2)", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
 
-    # 최근 30일 누적 수익률 시뮬레이션
+    # 최근 누적 수익률 시뮬레이션
     recent_df['Safe_Cum'] = (1 + recent_df['Safe_Ret']).cumprod() - 1
     recent_df['Opt_Cum'] = (1 + recent_df['Opt_Ret']).cumprod() - 1
     recent_df['Agg_Cum'] = (1 + recent_df['Agg_Ret']).cumprod() - 1
