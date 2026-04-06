@@ -121,8 +121,36 @@ fig4 = px_go.Figure()
 fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['SP500_DD'], fill='tozeroy', name='S&P 500 MDD', line=dict(color='red')))
 fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['Gold_DD'], fill='tozeroy', name='Gold MDD', line=dict(color='gold')))
 fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['USD_DD'], fill='tozeroy', name='USD MDD', line=dict(color='blue')))
-fig4.update_layout(title="자산별 낙폭 추이 (Drawdown)", yaxis_title="낙폭 비율", hovermode="x unified")
+
+# 주요 이벤트 화살표 및 텍스트 추가
+mdd_events = {
+    "🤒COVID-19": "2020-03-11",
+    "🏦SVB 파산": "2023-03-10",
+    "🪙미국 관세 발표": "2025-04-02",
+    "💥미-이란 전쟁": "2026-02-27"
+}
+
+for name, date in mdd_events.items():
+    fig4.add_annotation(
+        x=date, y=0,
+        text=name,
+        showarrow=True,
+        arrowhead=2,
+        ax=0, ay=-40,
+        font=dict(size=11, color="black"),
+        bgcolor="rgba(255, 255, 255, 0.8)",
+        bordercolor="gray",
+        borderwidth=1
+    )
+
+fig4.update_layout(
+    title="자산별 낙폭 추이 (Drawdown)", 
+    yaxis_title="낙폭 비율", 
+    hovermode="x unified",
+    yaxis=dict(range=[-0.35, 0], tickformat=".0%") # 0~-35% 범위 및 퍼센트 형식
+)
 st.plotly_chart(fig4, use_container_width=True)
+
 
 st.markdown("---")
 
