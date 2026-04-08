@@ -346,7 +346,7 @@ if not today_data.empty:
     
     # 미-이란 전쟁 발발일 화살표 표기
     fig5.add_vline(x="2026-02-27", line_width=1.5, line_dash="dash", line_color="red")
-    fig5.add_annotation(x="2026-02-27", y=1, yref="paper", text="미-이란 전쟁 발발", showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="red", size=10))
+    fig5.add_annotation(x="2026-02-27", y=1, yref="paper", text="💥미-이란 전쟁", showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="red", size=10))
     
     st.plotly_chart(fig5, use_container_width=True)
     
