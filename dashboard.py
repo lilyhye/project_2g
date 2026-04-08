@@ -3,28 +3,23 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as px_go
-from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
-import os
 
 # 페이지 설정
 st.set_page_config(layout="wide", page_title="금융 위기 대응 자산 배분 대시보드")
+
+import os
 
 # 1. 데이터 로드 및 전처리
 @st.cache_data
 def load_data():
     # 현재 파일(dashboard.py)의 디렉토리를 기준으로 경로 설정
     curr_dir = os.path.dirname(os.path.abspath(__file__))
-    # 상위 디렉토리의 data 폴더 내 finance_10y_data.csv 사용
-    file_path = os.path.join(os.path.dirname(curr_dir), 'data', 'finance_10y_data.csv')
+    file_path = os.path.join(curr_dir, 'data', 'finance_2020_data.csv')
     
     df = pd.read_csv(file_path)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
-    
-    # 컬럼명 통일 (Dollar -> USD)
-    if 'Dollar' in df.columns:
-        df.rename(columns={'Dollar': 'USD'}, inplace=True)
     
     # 일일 수익률 계산
     df['USD_Ret'] = df['USD'].pct_change()
@@ -37,66 +32,6 @@ def load_data():
     df['SP500_Cum'] = (1 + df['SP500_Ret']).cumprod() - 1
     
     return df
-
-# 기술적 지표 계산 함수
-def calculate_indicators(df, asset_col):
-    temp_df = df.copy()
-    
-    # 이동평균선 (SMA)
-    temp_df['SMA50'] = temp_df[asset_col].rolling(window=50).mean()
-    temp_df['SMA200'] = temp_df[asset_col].rolling(window=200).mean()
-    temp_df['SMA20'] = temp_df[asset_col].rolling(window=20).mean()
-    
-    # 볼린저 밴드 (20일 기준)
-    std = temp_df[asset_col].rolling(window=20).std()
-    temp_df['BB_Upper'] = temp_df['SMA20'] + (std * 2)
-    temp_df['BB_Lower'] = temp_df['SMA20'] - (std * 2)
-    
-    # RSI (14일 기준)
-    delta = temp_df[asset_col].diff()
-    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-    rs = gain / (loss + 1e-10) # 0으로 나누기 방지
-    temp_df['RSI'] = 100 - (100 / (1 + rs))
-    
-    # MACD (12, 26, 9)
-    ema12 = temp_df[asset_col].ewm(span=12, adjust=False).mean()
-    ema26 = temp_df[asset_col].ewm(span=26, adjust=False).mean()
-    temp_df['MACD'] = ema12 - ema26
-    temp_df['MACD_Signal'] = temp_df['MACD'].ewm(span=9, adjust=False).mean()
-    temp_df['MACD_Hist'] = temp_df['MACD'] - temp_df['MACD_Signal']
-    
-    return temp_df
-
-# 매매 신호 분석 함수
-def get_trading_signals(df, asset_col):
-    if len(df) < 201: # SMA 200 계산을 위해 최소 데이터 필요
-        return []
-        
-    last_row = df.iloc[-1]
-    prev_row = df.iloc[-2]
-    
-    signals = []
-    
-    # 1. 이동평균선 골든/데드크로스
-    if prev_row['SMA50'] < prev_row['SMA200'] and last_row['SMA50'] > last_row['SMA200']:
-        signals.append(("🚀 골든크로스 발생", "50일 이평선이 200일 이평선을 상향 돌파했습니다. 장기 상승 추세 전환 신호입니다.", "Buy"))
-    elif prev_row['SMA50'] > prev_row['SMA200'] and last_row['SMA50'] < last_row['SMA200']:
-        signals.append(("💀 데드크로스 발생", "50일 이평선이 200일 이평선을 하향 돌파했습니다. 장기 하락 추세 전환 신호입니다.", "Sell"))
-        
-    # 2. RSI 과매수/과매도
-    if last_row['RSI'] < 30:
-        signals.append(("📉 RSI 과매도", f"RSI가 {last_row['RSI']:.1f}로 30 미만입니다. 기술적 반등 가능성이 높은 구간입니다.", "Buy"))
-    elif last_row['RSI'] > 70:
-        signals.append(("📈 RSI 과매수", f"RSI가 {last_row['RSI']:.1f}로 70 초과입니다. 단기 조정 가능성이 높은 구간입니다.", "Sell"))
-        
-    # 3. 볼린저 밴드
-    if last_row[asset_col] < last_row['BB_Lower']:
-        signals.append(("🔔 BB 하단 돌파", "가격이 볼린저 밴드 하단을 이탈했습니다. 과매도 상태로 반등을 기대할 수 있습니다.", "Buy"))
-    elif last_row[asset_col] > last_row['BB_Upper']:
-        signals.append(("🔔 BB 상단 돌파", "가격이 볼린저 밴드 상단을 돌파했습니다. 과열 상태로 이익 실현을 고려할 수 있습니다.", "Sell"))
-        
-    return signals
 
 try:
     df_raw = load_data()
@@ -228,8 +163,8 @@ with p_col3:
 
 st.markdown("---")
 
-# Row 5: 4/7 실전 성과 분석
-st.markdown("### 🎯 Chart 5: 투자 성향별 포트폴리오 실적 비교 (2026-04-07 기준)")
+# Row 5: 4/2 실전 성과 분석
+st.markdown("### 🎯 Chart 5: 미국-이란 전쟁 위기 구간 포트폴리오 실적 비교")
 
 # 포트폴리오별 수익률 계산 필드 생성
 df_raw['Safe_Ret'] = (df_raw['Gold_Ret'] * 0.50 + df_raw['USD_Ret'] * 0.40 + df_raw['SP500_Ret'] * 0.10)
@@ -237,14 +172,36 @@ df_raw['Opt_Ret'] = (df_raw['Gold_Ret'] * 0.45 + df_raw['USD_Ret'] * 0.35 + df_r
 df_raw['Agg_Ret'] = (df_raw['Gold_Ret'] * 0.30 + df_raw['USD_Ret'] * 0.30 + df_raw['SP500_Ret'] * 0.40)
 
 recent_df = df_raw.tail(30).copy()
-target_date = "2026-04-07"
+target_date = "2026-04-02"
 today_data = df_raw[df_raw['Date'] == target_date]
 
+# 6. 2026 미국-이란 전쟁 위기 구간 개별 자산 성과 계산
 if not today_data.empty:
+    crisis_start_date = "2026-02-27"
+    start_data = df_raw[df_raw['Date'] == crisis_start_date]
+    
+    if not start_data.empty:
+        # 시작가 및 종료가 추출
+        s_gold, e_gold = start_data['Gold'].values[0], today_data['Gold'].values[0]
+        s_sp, e_sp = start_data['S&P500'].values[0], today_data['S&P500'].values[0]
+        s_usd, e_usd = start_data['USD'].values[0], today_data['USD'].values[0]
+        
+        # 변동률 계산
+        gold_perf = (e_gold / s_gold) - 1
+        sp500_perf = (e_sp / s_sp) - 1
+        usd_perf = (e_usd / s_usd) - 1
+
+        st.markdown("#### 🪙 개별 자산 위기 성과")
+        a1, a2, a3 = st.columns(3)
+        with a1: st.metric("금 (Gold)", f"{(gold_perf*100):.2f}%", f"{gold_perf*100:.2f}%", delta_color="normal")
+        with a2: st.metric("S&P 500", f"{(sp500_perf*100):.2f}%", f"{sp500_perf*100:.2f}%", delta_color="normal")
+        with a3: st.metric("달러 (USD)", f"{(usd_perf*100):.2f}%", f"{usd_perf*100:.2f}%", delta_color="normal")
+
+    st.markdown("#### 🥧 투자 성향별 포트폴리오 수익률")
     m1, m2, m3 = st.columns(3)
-    with m1: st.metric("🛡️ 안정형 (4/7)", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
-    with m2: st.metric("⭐ 최적 추천형 (4/7)", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
-    with m3: st.metric("🔥 공격형 (4/7)", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
+    with m1: st.metric("🛡️ 안정형 (4/2)", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
+    with m2: st.metric("⭐ 최적 추천형 (4/2)", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
+    with m3: st.metric("🔥 공격형 (4/2)", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
 
     # 최근 30일 누적 수익률 시뮬레이션
     recent_df['Safe_Cum'] = (1 + recent_df['Safe_Ret']).cumprod() - 1
@@ -302,60 +259,4 @@ with strat_col2:
     st.success("**추천 대상**: 위기 이후의 강력한 V자 반등 수익을 극대화하려는 공격적 투자자. S&P 500의 높은 탄력성에 집중 배분합니다.")
 
 st.markdown("---")
-st.info(f"📊 데이터 가공 정보: 프로젝트 루트의 data/finance_10y_data.csv 사용 (총 {len(df_raw)}행)")
-
-# Row 7: 전술적 매매 타이밍 분석 (기술적 지표)
-st.markdown("### 🔍 Chart 7: 전술적 매매 타이밍 분석 (기술적 지표)")
-
-# 자산 선택
-ta_col1, ta_col2 = st.columns([1, 4])
-with ta_col1:
-    # S&P500, Gold, USD 중 선택 (load_data에서 Dollar를 USD로 변환함)
-    selected_asset = st.selectbox("분석 대상 자산 선택", ["S&P500", "Gold", "USD"], index=0)
-    
-    # 지표 계산
-    df_ta = calculate_indicators(df_raw, selected_asset)
-    
-    # 매매 신호 포착
-    asset_signals = get_trading_signals(df_ta, selected_asset)
-    
-    st.markdown("#### 🚩 실시간 매매 신호")
-    if not asset_signals:
-        st.info("현재 뚜렷한 기술적 신호가 없습니다. (Hold)")
-    else:
-        for title, desc, action in asset_signals:
-            if action == "Buy":
-                st.success(f"**{title}**\n\n{desc}")
-            else:
-                st.error(f"**{title}**\n\n{desc}")
-
-with ta_col2:
-    # 최근 1년(252일) 데이터 시각화하여 가독성 확보
-    df_plot = df_ta.tail(252).copy()
-    
-    fig_ta = make_subplots(rows=3, cols=1, shared_xaxes=True, 
-                          vertical_spacing=0.08, 
-                          row_heights=[0.5, 0.25, 0.25],
-                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드 (최근 1년)", "RSI (14)", "MACD"))
-    
-    # 1. 가격/BB/이평선
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price', line=dict(color='black', width=2)), row=1, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['BB_Upper'], name='BB Upper', line=dict(color='gray', dash='dash', width=1)), row=1, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['BB_Lower'], name='BB Lower', line=dict(color='gray', dash='dash', width=1), fill='tonexty'), row=1, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA50'], name='SMA 50', line=dict(color='blue', width=1.5)), row=1, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA200'], name='SMA 200', line=dict(color='red', width=1.5)), row=1, col=1)
-    
-    # 2. RSI
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['RSI'], name='RSI', line=dict(color='purple')), row=2, col=1)
-    fig_ta.add_hline(y=70, line=dict(color="red", dash="dash"), row=2, col=1)
-    fig_ta.add_hline(y=30, line=dict(color="green", dash="dash"), row=2, col=1)
-    
-    # 3. MACD
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD'], name='MACD', line=dict(color='blue')), row=3, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD_Signal'], name='Signal', line=dict(color='orange')), row=3, col=1)
-    fig_ta.add_trace(px_go.Bar(x=df_plot['Date'], y=df_plot['MACD_Hist'], name='Histogram', marker_color='gray'), row=3, col=1)
-    
-    fig_ta.update_layout(height=850, showlegend=True, hovermode="x unified", template="plotly_white")
-    st.plotly_chart(fig_ta, use_container_width=True)
-
-st.caption("※ 본 분석은 기술적 지표에 기반한 참고 자료이며, 투자 결정의 최종 책임은 투자자 본인에게 있습니다.")
+st.info(f"📊 데이터 가공 정보: 프로젝트 루트의 finance_2020_data.csv 사용 (총 {len(df_raw)}행)")
