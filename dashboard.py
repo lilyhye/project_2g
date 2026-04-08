@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as px_go
+from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 
 # 페이지 설정
@@ -31,7 +32,71 @@ def load_data():
     df['Gold_Cum'] = (1 + df['Gold_Ret']).cumprod() - 1
     df['SP500_Cum'] = (1 + df['SP500_Ret']).cumprod() - 1
     
+    # 컬럼명 통일 (Dollar -> USD)
+    if 'Dollar' in df.columns:
+        df.rename(columns={'Dollar': 'USD'}, inplace=True)
+    
     return df
+
+# 기술적 지표 계산 함수
+def calculate_indicators(df, asset_col):
+    temp_df = df.copy()
+    
+    # 이동평균선 (SMA)
+    temp_df['SMA50'] = temp_df[asset_col].rolling(window=50).mean()
+    temp_df['SMA200'] = temp_df[asset_col].rolling(window=200).mean()
+    temp_df['SMA20'] = temp_df[asset_col].rolling(window=20).mean()
+    
+    # 볼린저 밴드 (20일 기준)
+    std = temp_df[asset_col].rolling(window=20).std()
+    temp_df['BB_Upper'] = temp_df['SMA20'] + (std * 2)
+    temp_df['BB_Lower'] = temp_df['SMA20'] - (std * 2)
+    
+    # RSI (14일 기준)
+    delta = temp_df[asset_col].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / (loss + 1e-10) # 0으로 나누기 방지
+    temp_df['RSI'] = 100 - (100 / (1 + rs))
+    
+    # MACD (12, 26, 9)
+    ema12 = temp_df[asset_col].ewm(span=12, adjust=False).mean()
+    ema26 = temp_df[asset_col].ewm(span=26, adjust=False).mean()
+    temp_df['MACD'] = ema12 - ema26
+    temp_df['MACD_Signal'] = temp_df['MACD'].ewm(span=9, adjust=False).mean()
+    temp_df['MACD_Hist'] = temp_df['MACD'] - temp_df['MACD_Signal']
+    
+    return temp_df
+
+# 매매 신호 분석 함수
+def get_trading_signals(df, asset_col):
+    if len(df) < 201: # SMA 200 계산을 위해 최소 데이터 필요
+        return []
+        
+    last_row = df.iloc[-1]
+    prev_row = df.iloc[-2]
+    
+    signals = []
+    
+    # 1. 이동평균선 골든/데드크로스
+    if prev_row['SMA50'] < prev_row['SMA200'] and last_row['SMA50'] > last_row['SMA200']:
+        signals.append(("🚀 골든크로스 발생", "50일 이평선이 200일 이평선을 상향 돌파했습니다. 장기 상승 추세 전환 신호입니다.", "Buy"))
+    elif prev_row['SMA50'] > prev_row['SMA200'] and last_row['SMA50'] < last_row['SMA200']:
+        signals.append(("💀 데드크로스 발생", "50일 이평선이 200일 이평선을 하향 돌파했습니다. 장기 하락 추세 전환 신호입니다.", "Sell"))
+        
+    # 2. RSI 과매수/과매도
+    if last_row['RSI'] < 30:
+        signals.append(("📉 RSI 과매도", f"RSI가 {last_row['RSI']:.1f}로 30 미만입니다. 기술적 반등 가능성이 높은 구간입니다.", "Buy"))
+    elif last_row['RSI'] > 70:
+        signals.append(("📈 RSI 과매수", f"RSI가 {last_row['RSI']:.1f}로 70 초과입니다. 단기 조정 가능성이 높은 구간입니다.", "Sell"))
+        
+    # 3. 볼린저 밴드
+    if last_row[asset_col] < last_row['BB_Lower']:
+        signals.append(("🔔 BB 하단 돌파", "가격이 볼린저 밴드 하단을 이탈했습니다. 과매도 상태로 반등을 기대할 수 있습니다.", "Buy"))
+    elif last_row[asset_col] > last_row['BB_Upper']:
+        signals.append(("🔔 BB 상단 돌파", "가격이 볼린저 밴드 상단을 돌파했습니다. 과열 상태로 이익 실현을 고려할 수 있습니다.", "Sell"))
+        
+    return signals
 
 try:
     df_raw = load_data()
@@ -230,33 +295,6 @@ if not today_data.empty:
     **분석 결과**: 미국-이란 전쟁 직후 S&P 500(빨간색)의 급락에도 불구하고, **안정형(회색)**과 **최적 추천형(검정색)** 전략은 
     안전자산의 방어력 덕분에 수익률 방어에 우수한 성과를 보입니다. 반면 **공격형(보라색)**은 S&P 500의 영향을 더 많이 받으나, 반등 시 회복 탄력성이 가장 높습니다.
     """)
-
-st.markdown("---")
-
-# Row 6: 회복 국면 추천 포트폴리오 전략 (2단계 제안)
-st.markdown("### 🚀 Chart 6: 시장 안정화 단계 추천 포트폴리오 (회복 국면)")
-
-strat_col1, strat_col2 = st.columns(2)
-
-with strat_col1:
-    st.markdown("#### 🛡️ 1. 안정 수혜형 (Stable Strategy)")
-    stable_weights = {'Gold': 0.35, 'USD': 0.30, 'S&P 500': 0.35}
-    stable_df = pd.DataFrame(list(stable_weights.items()), columns=['Asset', 'Weight'])
-    fig_stable = px.pie(stable_df, values='Weight', names='Asset', hole=0.4,
-                      title="안정 수혜형 비중",
-                      color='Asset', color_discrete_map={'Gold': 'gold', 'USD': 'blue', 'S&P 500': 'red'})
-    st.plotly_chart(fig_stable, use_container_width=True)
-    st.info("**추천 대상**: 원금 보호를 중시하면서 시장 반등의 기회를 놓치고 싶지 않은 보수적 투자자. 자산 간 균형을 통해 변동성을 최소화합니다.")
-
-with strat_col2:
-    st.markdown("#### ⚡ 2. 공격 반등형 (Aggressive Strategy)")
-    agg_weights = {'Gold': 0.25, 'USD': 0.15, 'S&P 500': 0.60}
-    agg_df = pd.DataFrame(list(agg_weights.items()), columns=['Asset', 'Weight'])
-    fig_agg = px.pie(agg_df, values='Weight', names='Asset', hole=0.4,
-                   title="공격 반등형 비중",
-                   color='Asset', color_discrete_map={'Gold': 'gold', 'USD': 'blue', 'S&P 500': 'red'})
-    st.plotly_chart(fig_agg, use_container_width=True)
-    st.success("**추천 대상**: 위기 이후의 강력한 V자 반등 수익을 극대화하려는 공격적 투자자. S&P 500의 높은 탄력성에 집중 배분합니다.")
 
 st.markdown("---")
 
