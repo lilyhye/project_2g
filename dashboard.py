@@ -259,4 +259,88 @@ with strat_col2:
     st.success("**추천 대상**: 위기 이후의 강력한 V자 반등 수익을 극대화하려는 공격적 투자자. S&P 500의 높은 탄력성에 집중 배분합니다.")
 
 st.markdown("---")
-st.info(f"📊 데이터 가공 정보: 프로젝트 루트의 finance_2020_data.csv 사용 (총 {len(df_raw)}행)")
+
+# Row 6: 회복 국면 추천 포트폴리오 전략 (2단계 제안)
+st.markdown("### 🚀 Chart 6: 시장 안정화 단계 추천 포트폴리오 (회복 국면)")
+
+strat_col1, strat_col2 = st.columns(2)
+
+with strat_col1:
+    st.markdown("#### 🛡️ 1. 안정 수혜형 (Stable Strategy)")
+    stable_weights = {'Gold': 0.35, 'USD': 0.30, 'S&P 500': 0.35}
+    stable_df = pd.DataFrame(list(stable_weights.items()), columns=['Asset', 'Weight'])
+    fig_stable = px.pie(stable_df, values='Weight', names='Asset', hole=0.4,
+                      title="안정 수혜형 비중",
+                      color='Asset', color_discrete_map={'Gold': 'gold', 'USD': 'blue', 'S&P 500': 'red'})
+    st.plotly_chart(fig_stable, use_container_width=True)
+    st.info("**추천 대상**: 원금 보호를 중시하면서 시장 반등의 기회를 놓치고 싶지 않은 보수적 투자자. 자산 간 균형을 통해 변동성을 최소화합니다.")
+
+with strat_col2:
+    st.markdown("#### ⚡ 2. 공격 반등형 (Aggressive Strategy)")
+    agg_weights = {'Gold': 0.25, 'USD': 0.15, 'S&P 500': 0.60}
+    agg_df = pd.DataFrame(list(agg_weights.items()), columns=['Asset', 'Weight'])
+    fig_agg = px.pie(agg_df, values='Weight', names='Asset', hole=0.4,
+                   title="공격 반등형 비중",
+                   color='Asset', color_discrete_map={'Gold': 'gold', 'USD': 'blue', 'S&P 500': 'red'})
+    st.plotly_chart(fig_agg, use_container_width=True)
+    st.success("**추천 대상**: 위기 이후의 강력한 V자 반등 수익을 극대화하려는 공격적 투자자. S&P 500의 높은 탄력성에 집중 배분합니다.")
+
+st.markdown("---")
+
+st.info(f"📊 데이터 가공 정보: 프로젝트 루트의 data/finance_10y_data.csv 사용 (총 {len(df_raw)}행)")
+
+# Row 7: 전술적 매매 타이밍 분석 (기술적 지표)
+st.markdown("### 🔍 Chart 7: 전술적 매매 타이밍 분석 (기술적 지표)")
+
+# 자산 선택
+ta_col1, ta_col2 = st.columns([1, 4])
+with ta_col1:
+    # S&P500, Gold, USD 중 선택 (load_data에서 Dollar를 USD로 변환함)
+    selected_asset = st.selectbox("분석 대상 자산 선택", ["S&P500", "Gold", "USD"], index=0)
+    
+    # 지표 계산
+    df_ta = calculate_indicators(df_raw, selected_asset)
+    
+    # 매매 신호 포착
+    asset_signals = get_trading_signals(df_ta, selected_asset)
+    
+    st.markdown("#### 🚩 실시간 매매 신호")
+    if not asset_signals:
+        st.info("현재 뚜렷한 기술적 신호가 없습니다. (Hold)")
+    else:
+        for title, desc, action in asset_signals:
+            if action == "Buy":
+                st.success(f"**{title}**\n\n{desc}")
+            else:
+                st.error(f"**{title}**\n\n{desc}")
+
+with ta_col2:
+    # 최근 1년(252일) 데이터 시각화하여 가독성 확보
+    df_plot = df_ta.tail(252).copy()
+    
+    fig_ta = make_subplots(rows=3, cols=1, shared_xaxes=True, 
+                          vertical_spacing=0.08, 
+                          row_heights=[0.5, 0.25, 0.25],
+                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드 (최근 1년)", "RSI (14)", "MACD"))
+    
+    # 1. 가격/BB/이평선
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price', line=dict(color='black', width=2)), row=1, col=1)
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['BB_Upper'], name='BB Upper', line=dict(color='gray', dash='dash', width=1)), row=1, col=1)
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['BB_Lower'], name='BB Lower', line=dict(color='gray', dash='dash', width=1), fill='tonexty'), row=1, col=1)
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA50'], name='SMA 50', line=dict(color='blue', width=1.5)), row=1, col=1)
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA200'], name='SMA 200', line=dict(color='red', width=1.5)), row=1, col=1)
+    
+    # 2. RSI
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['RSI'], name='RSI', line=dict(color='purple')), row=2, col=1)
+    fig_ta.add_hline(y=70, line=dict(color="red", dash="dash"), row=2, col=1)
+    fig_ta.add_hline(y=30, line=dict(color="green", dash="dash"), row=2, col=1)
+    
+    # 3. MACD
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD'], name='MACD', line=dict(color='blue')), row=3, col=1)
+    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD_Signal'], name='Signal', line=dict(color='orange')), row=3, col=1)
+    fig_ta.add_trace(px_go.Bar(x=df_plot['Date'], y=df_plot['MACD_Hist'], name='Histogram', marker_color='gray'), row=3, col=1)
+    
+    fig_ta.update_layout(height=850, showlegend=True, hovermode="x unified", template="plotly_white")
+    st.plotly_chart(fig_ta, use_container_width=True)
+
+st.caption("※ 본 분석은 기술적 지표에 기반한 참고 자료이며, 투자 결정의 최종 책임은 투자자 본인에게 있습니다.")
