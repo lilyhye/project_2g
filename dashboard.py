@@ -228,8 +228,8 @@ with p_col3:
 
 st.markdown("---")
 
-# Row 5: 4/2 실전 성과 분석
-st.markdown("### 🎯 Chart 5: 투자 성향별 포트폴리오 실적 비교 (2026-04-02 기준)")
+# Row 5: 4/7 실전 성과 분석
+st.markdown("### 🎯 Chart 5: 투자 성향별 포트폴리오 실적 비교 (2026-04-07 기준)")
 
 # 포트폴리오별 수익률 계산 필드 생성
 df_raw['Safe_Ret'] = (df_raw['Gold_Ret'] * 0.50 + df_raw['USD_Ret'] * 0.40 + df_raw['SP500_Ret'] * 0.10)
@@ -237,14 +237,14 @@ df_raw['Opt_Ret'] = (df_raw['Gold_Ret'] * 0.45 + df_raw['USD_Ret'] * 0.35 + df_r
 df_raw['Agg_Ret'] = (df_raw['Gold_Ret'] * 0.30 + df_raw['USD_Ret'] * 0.30 + df_raw['SP500_Ret'] * 0.40)
 
 recent_df = df_raw.tail(30).copy()
-target_date = "2026-04-02"
+target_date = "2026-04-07"
 today_data = df_raw[df_raw['Date'] == target_date]
 
 if not today_data.empty:
     m1, m2, m3 = st.columns(3)
-    with m1: st.metric("🛡️ 안정형 (4/2)", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
-    with m2: st.metric("⭐ 최적 추천형 (4/2)", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
-    with m3: st.metric("🔥 공격형 (4/2)", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
+    with m1: st.metric("🛡️ 안정형 (4/7)", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
+    with m2: st.metric("⭐ 최적 추천형 (4/7)", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
+    with m3: st.metric("🔥 공격형 (4/7)", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
 
     # 최근 30일 누적 수익률 시뮬레이션
     recent_df['Safe_Cum'] = (1 + recent_df['Safe_Ret']).cumprod() - 1
