@@ -192,6 +192,7 @@ for name, date in events.items():
     fig1.add_annotation(x=date, text=name, showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=10))
 
 fig1.update_layout(legend_title="자산구분", hovermode="x unified")
+fig1.update_xaxes(range=['2020-01-01', df_raw['Date'].max()])
 st.plotly_chart(fig1, use_container_width=True)
 st.caption("그래프 해석: 위기 시 금과 달러는 방어 기제 역할을 하며, S&P 500은 낙폭 이후 가파른 우상향 패턴을 보입니다.")
 
@@ -229,6 +230,7 @@ fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['SP500_DD'], fill='tozer
 fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['Gold_DD'], fill='tozeroy', name='Gold MDD', line=dict(color='gold')))
 fig4.add_trace(px_go.Scatter(x=df_raw['Date'], y=df_raw['USD_DD'], fill='tozeroy', name='USD MDD', line=dict(color='blue')))
 fig4.update_layout(title="자산별 낙폭 추이 (Drawdown)", yaxis_title="낙폭 비율", hovermode="x unified")
+fig4.update_xaxes(range=['2020-01-01', df_raw['Date'].max()])
 st.plotly_chart(fig4, use_container_width=True)
 
 st.markdown("---")
