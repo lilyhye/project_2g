@@ -383,6 +383,24 @@ with ta_col1:
     # 지표 계산
     df_ta = calculate_indicators(df_raw, selected_asset)
     
+    # 최근 2주(14일) 범위 내의 매수/매도 시점 추출하여 타이밍 날짜 제시
+    two_weeks_ago = df_ta['Date'].max() - pd.Timedelta(days=14)
+    recent_signals_df = df_ta[df_ta['Date'] >= two_weeks_ago].copy()
+    
+    recent_buys = recent_signals_df[recent_signals_df['Signal_Buy'].notna()]
+    recent_sells = recent_signals_df[recent_signals_df['Signal_Sell'].notna()]
+    
+    st.markdown("#### 📅 최근 2주간 매수/매도 타이밍")
+    if recent_buys.empty and recent_sells.empty:
+        st.info("최근 2주간 특별한 매수/매도 타이밍이 포착되지 않았습니다.")
+    else:
+        if not recent_buys.empty:
+            buy_dates = recent_buys['Date'].dt.strftime('%Y-%m-%d').tolist()
+            st.success(f"**추천 매수 일자:** {', '.join(buy_dates)}")
+        if not recent_sells.empty:
+            sell_dates = recent_sells['Date'].dt.strftime('%Y-%m-%d').tolist()
+            st.error(f"**추천 매도 일자:** {', '.join(sell_dates)}")
+            
     # 매매 신호 포착
     asset_signals = get_trading_signals(df_ta, selected_asset)
     
@@ -432,21 +450,6 @@ with ta_col2:
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['BB_Lower'], name='BB Lower', line=dict(color='gray', dash='dash', width=1), fill='tonexty'), row=1, col=1)
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA50'], name='SMA 50', line=dict(color='blue', width=1.5)), row=1, col=1)
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA200'], name='SMA 200', line=dict(color='red', width=1.5)), row=1, col=1)
-    
-    # 🌟 매수/매도 시그널 시각화 추적 (가격 차트)
-    fig_ta.add_trace(px_go.Scatter(
-        x=df_plot['Date'], y=df_plot['Signal_Buy'],
-        mode='markers', name='Buy Signal',
-        marker=dict(symbol='triangle-up', size=12, color='green', line=dict(width=1, color='white')),
-        hovertemplate="매수 신호 발생<br>날짜: %{x}<br>가격: %{y:.2f}"
-    ), row=1, col=1)
-    
-    fig_ta.add_trace(px_go.Scatter(
-        x=df_plot['Date'], y=df_plot['Signal_Sell'],
-        mode='markers', name='Sell Signal',
-        marker=dict(symbol='triangle-down', size=12, color='red', line=dict(width=1, color='white')),
-        hovertemplate="매도 신호 발생<br>날짜: %{x}<br>가격: %{y:.2f}"
-    ), row=1, col=1)
     
     # 2. RSI
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['RSI'], name='RSI', line=dict(color='purple')), row=2, col=1)
