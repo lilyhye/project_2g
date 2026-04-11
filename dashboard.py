@@ -506,14 +506,14 @@ with ta_col2:
     for _, row_data in golden_crosses.iterrows():
         fig_ta.add_annotation(
             x=row_data['Date'], y=row_data['SMA50'],
-            text="▲ 골든크로스", showarrow=True, arrowhead=1, ax=0, ay=30,
+            text="▲ 골든크로스 → 매도타이밍", showarrow=True, arrowhead=1, ax=0, ay=30,
             font=dict(color="blue", size=11), arrowcolor="blue", row=2, col=1
         )
         
     for _, row_data in death_crosses.iterrows():
         fig_ta.add_annotation(
             x=row_data['Date'], y=row_data['SMA50'],
-            text="▼ 데드크로스", showarrow=True, arrowhead=1, ax=0, ay=-30,
+            text="▼ 데드크로스 → 매수타이밍", showarrow=True, arrowhead=1, ax=0, ay=-30,
             font=dict(color="red", size=11), arrowcolor="red", row=2, col=1
         )
     
