@@ -312,15 +312,27 @@ if not today_data.empty:
 
         st.markdown("#### 🪙 개별 자산 위기 성과")
         a1, a2, a3 = st.columns(3)
-        with a1: st.metric("금 (Gold)", f"{(gold_perf*100):.2f}%", f"{gold_perf*100:.2f}%", delta_color="normal")
-        with a2: st.metric("S&P 500", f"{(sp500_perf*100):.2f}%", f"{sp500_perf*100:.2f}%", delta_color="normal")
-        with a3: st.metric("달러 (USD)", f"{(usd_perf*100):.2f}%", f"{usd_perf*100:.2f}%", delta_color="normal")
+        with a1:
+            with st.container(border=True):
+                st.metric("금 (Gold)", f"{(gold_perf*100):.2f}%", f"{gold_perf*100:.2f}%", delta_color="normal")
+        with a2:
+            with st.container(border=True):
+                st.metric("S&P 500", f"{(sp500_perf*100):.2f}%", f"{sp500_perf*100:.2f}%", delta_color="normal")
+        with a3:
+            with st.container(border=True):
+                st.metric("달러 (USD)", f"{(usd_perf*100):.2f}%", f"{usd_perf*100:.2f}%", delta_color="normal")
 
     st.markdown(f"#### 🥧 투자 성향별 포트폴리오 수익률 ({date_display})")
     m1, m2, m3 = st.columns(3)
-    with m1: st.metric(f"🛡️ 안정형 ({date_display})", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
-    with m2: st.metric(f"⭐ 최적 추천형 ({date_display})", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
-    with m3: st.metric(f"🔥 공격형 ({date_display})", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
+    with m1:
+        with st.container(border=True):
+            st.metric(f"🛡️ 안정형 ({date_display})", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
+    with m2:
+        with st.container(border=True):
+            st.metric(f"⭐ 최적 추천형 ({date_display})", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
+    with m3:
+        with st.container(border=True):
+            st.metric(f"🔥 공격형 ({date_display})", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
 
     # 최근 30일 누적 수익률 시뮬레이션
     recent_df['Safe_Cum'] = (1 + recent_df['Safe_Ret']).cumprod() - 1
