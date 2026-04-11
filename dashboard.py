@@ -11,6 +11,20 @@ from datetime import datetime, timedelta
 st.set_page_config(layout="wide", page_title="금융 위기 대응 자산 배분 대시보드")
 
 import os
+import plotly.io as pio
+
+# 전체 폰트 크기 확대 CSS 적용 (Streamlit 텍스트 요소들)
+st.markdown("""
+    <style>
+        html, body, [class*="st-"] {
+            font-size: 115% !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# 차트 전역 폰트 크기 확대 (Plotly 요소들)
+pio.templates["plotly_white"].layout.font.size = 15
+pio.templates.default = "plotly_white"
 
 # 1. 데이터 로드 및 전처리
 @st.cache_data(ttl=3600) # 1시간 동안 캐시 유지 (실시간 수집 효율화)
@@ -214,6 +228,13 @@ for seg, col in zip(segments, cols):
             fig_corr = px.imshow(corr_matrix, text_auto=True, color_continuous_scale='RdBu_r', title=f"{seg} 구간 상관관계")
             fig_corr.update_layout(coloraxis_showscale=False, margin=dict(l=20, r=20, t=40, b=20))
             st.plotly_chart(fig_corr, use_container_width=True)
+
+st.info('''
+**💡 상관관계 히트맵 인사이트**
+- **평상시 (Basic)** : 주식(S&P 500), 금, 달러 간의 상관성이 상대적으로 낮거나 불규칙하여, 거시경제 지표에 따라 개별적으로 움직이는 경향이 있습니다.
+- **위기시 (Crisis)** : 증시 급락 시 **위험 자산(주식)과 안전 자산(금, 달러) 간의 강력한 역상관관계(음수 매트릭스)** 현상이 뚜렷하게 관찰됩니다. 즉, 포트폴리오에 금과 달러를 편입해 두면 시장 충격을 효과적으로 상쇄하고 자산을 방어할 수 있습니다.
+- **회복기 (Recovery)** : 주식 시장이 반등하며 시장의 리스크 온(Risk-on) 선호도가 다시 높아지면, 안전 자산(달러 등)은 약세를 보이고 상관성이 변동합니다. 이 구간에서는 안전 자산의 비중을 점진적으로 줄이는 리밸런싱 전략이 유효합니다.
+''')
 
 st.markdown("---")
 
@@ -502,8 +523,8 @@ with ta_col2:
     fig_ta.add_hline(y=30, line=dict(color="green", dash="dash"), row=3, col=1)
     
     # RSI 과매수/과매도 구간 배경색 추가
-    fig_ta.add_hrect(y0=70, y1=100, line_width=0, fillcolor="red", opacity=0.1, row=3, col=1, annotation_text="과매수 → 매도신호", annotation_position="top left", annotation_font_color="red")
-    fig_ta.add_hrect(y0=0, y1=30, line_width=0, fillcolor="green", opacity=0.1, row=3, col=1, annotation_text="과매도 → 매수신호", annotation_position="bottom left", annotation_font_color="green")
+    fig_ta.add_hrect(y0=70, y1=100, line_width=0, fillcolor="red", opacity=0.1, row=3, col=1, annotation_text="과매수", annotation_position="top left", annotation_font_color="red")
+    fig_ta.add_hrect(y0=0, y1=30, line_width=0, fillcolor="green", opacity=0.1, row=3, col=1, annotation_text="과매도", annotation_position="bottom left", annotation_font_color="green")
     fig_ta.update_yaxes(title_text="RSI", range=[0, 100], row=3, col=1)
     
     fig_ta.update_layout(
@@ -519,3 +540,12 @@ with ta_col2:
     st.plotly_chart(fig_ta, use_container_width=True)
 
 st.caption("※ 본 분석은 기술적 지표에 기반한 참고 자료이며, 투자 결정의 최종 책임은 투자자 본인에게 있습니다.")
+
+st.markdown("""
+<div style="text-align: right; font-size: 0.9em; color: #888888; margin-top: 50px;">
+    <strong>프로젝트명</strong> : 더블-G<br>
+    <strong>팀원</strong> : 이지혜, 안은지<br>
+    <strong>작성일</strong> : 2026.04.13<br>
+    <strong>데이터 출처</strong> : yfinance
+</div>
+""", unsafe_allow_html=True)
