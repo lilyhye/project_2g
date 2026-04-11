@@ -502,8 +502,8 @@ with ta_col2:
     fig_ta.add_hline(y=30, line=dict(color="green", dash="dash"), row=3, col=1)
     
     # RSI 과매수/과매도 구간 배경색 추가
-    fig_ta.add_hrect(y0=70, y1=100, line_width=0, fillcolor="red", opacity=0.1, row=3, col=1, annotation_text="과매수", annotation_position="top left", annotation_font_color="red")
-    fig_ta.add_hrect(y0=0, y1=30, line_width=0, fillcolor="green", opacity=0.1, row=3, col=1, annotation_text="과매도", annotation_position="bottom left", annotation_font_color="green")
+    fig_ta.add_hrect(y0=70, y1=100, line_width=0, fillcolor="red", opacity=0.1, row=3, col=1, annotation_text="과매수 → 매도신호", annotation_position="top left", annotation_font_color="red")
+    fig_ta.add_hrect(y0=0, y1=30, line_width=0, fillcolor="green", opacity=0.1, row=3, col=1, annotation_text="과매도 → 매수신호", annotation_position="bottom left", annotation_font_color="green")
     fig_ta.update_yaxes(title_text="RSI", range=[0, 100], row=3, col=1)
     
     fig_ta.update_layout(
