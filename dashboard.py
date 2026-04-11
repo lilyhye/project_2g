@@ -452,7 +452,7 @@ with ta_col2:
     fig_ta = make_subplots(rows=3, cols=1, shared_xaxes=True, 
                           vertical_spacing=0.06, 
                           row_heights=[0.4, 0.4, 0.2],
-                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드", "이동평균선 (50일, 200일)", "RSI (14)"))
+                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드", "이동평균선 (50일, 200일)", "RSI (상대강도지수)"))
     
     # 1. 가격 및 볼린저 밴드
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price', line=dict(color='black', width=2), legend="legend"), row=1, col=1)
