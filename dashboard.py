@@ -542,10 +542,13 @@ with ta_col2:
 st.caption("※ 본 분석은 기술적 지표에 기반한 참고 자료이며, 투자 결정의 최종 책임은 투자자 본인에게 있습니다.")
 
 st.markdown("""
-<div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 25px; font-size: 0.95em; color: #d6336c; background-color: #fff0f6; border: 2px dashed #ffb8da; padding: 15px 30px; border-radius: 30px; margin-top: 50px; font-weight: 500;">
-    <span>🎀 <strong>팀명</strong> : 더블-G</span>
-    <span>🧸 <strong>팀원</strong> : 이지혜, 안은지</span>
-    <span>📅 <strong>작성일</strong> : 2026.04.13</span>
-    <span>☁️ <strong>데이터 출처</strong> : yfinance</span>
+<div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 20px; font-size: 0.9em; color: #495057; background-color: #f8f9fa; border: 1px solid #dee2e6; border-left: 4px solid #4bc0c0; padding: 15px 30px; border-radius: 4px; margin-top: 50px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <span><strong style="color: #343a40;">팀명</strong> : 더블-G</span>
+    <span style="color: #ced4da;">|</span>
+    <span><strong style="color: #343a40;">팀원</strong> : 이지혜, 안은지</span>
+    <span style="color: #ced4da;">|</span>
+    <span><strong style="color: #343a40;">작성일</strong> : 2026.04.13</span>
+    <span style="color: #ced4da;">|</span>
+    <span><strong style="color: #343a40;">데이터 출처</strong> : yfinance</span>
 </div>
 """, unsafe_allow_html=True)
