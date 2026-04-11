@@ -16,14 +16,14 @@ import plotly.io as pio
 # 전체 폰트 크기 확대 CSS 적용 (Streamlit 텍스트 요소들)
 st.markdown("""
     <style>
-        html, body, [class*="st-"] {
-            font-size: 115% !important;
+        html {
+            font-size: 105% !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # 차트 전역 폰트 크기 확대 (Plotly 요소들)
-pio.templates["plotly_white"].layout.font.size = 15
+pio.templates["plotly_white"].layout.font.size = 14
 pio.templates.default = "plotly_white"
 
 # 1. 데이터 로드 및 전처리
