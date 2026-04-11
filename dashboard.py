@@ -11,20 +11,6 @@ from datetime import datetime, timedelta
 st.set_page_config(layout="wide", page_title="금융 위기 대응 자산 배분 대시보드")
 
 import os
-import plotly.io as pio
-
-# 전체 폰트 크기 확대 CSS 적용 (Streamlit 텍스트 요소들)
-st.markdown("""
-    <style>
-        html, body, [class*="st-"] {
-            font-size: 115% !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# 차트 전역 폰트 크기 확대 (Plotly 요소들)
-pio.templates["plotly_white"].layout.font.size = 15
-pio.templates.default = "plotly_white"
 
 # 1. 데이터 로드 및 전처리
 @st.cache_data(ttl=3600) # 1시간 동안 캐시 유지 (실시간 수집 효율화)
