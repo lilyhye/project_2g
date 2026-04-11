@@ -452,7 +452,7 @@ with ta_col2:
     fig_ta = make_subplots(rows=3, cols=1, shared_xaxes=True, 
                           vertical_spacing=0.06, 
                           row_heights=[0.4, 0.4, 0.2],
-                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드", "이동평균선 (20일, 50일, 200일)", "RSI (14)"))
+                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드", "이동평균선 (50일, 200일)", "RSI (14)"))
     
     # 1. 가격 및 볼린저 밴드
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price', line=dict(color='black', width=2)), row=1, col=1)
@@ -462,10 +462,27 @@ with ta_col2:
 
     # 2. 가격 및 이동평균선
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price ', showlegend=False, line=dict(color='black', width=2)), row=2, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA20'], name='SMA 20', line=dict(color='orange', width=1.5)), row=2, col=1)
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA50'], name='SMA 50', line=dict(color='blue', width=1.5)), row=2, col=1)
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['SMA200'], name='SMA 200', line=dict(color='red', width=1.5)), row=2, col=1)
     fig_ta.update_yaxes(title_text="이동평균선", row=2, col=1)
+    
+    # 골든크로스 & 데드크로스 화살표 표시
+    golden_crosses = df_plot[(df_plot['Prev_SMA50'] < df_plot['Prev_SMA200']) & (df_plot['SMA50'] > df_plot['SMA200'])]
+    death_crosses = df_plot[(df_plot['Prev_SMA50'] > df_plot['Prev_SMA200']) & (df_plot['SMA50'] < df_plot['SMA200'])]
+    
+    for _, row_data in golden_crosses.iterrows():
+        fig_ta.add_annotation(
+            x=row_data['Date'], y=row_data['SMA50'],
+            text="▲ 골든크로스", showarrow=True, arrowhead=1, ax=0, ay=30,
+            font=dict(color="blue", size=11), arrowcolor="blue", row=2, col=1
+        )
+        
+    for _, row_data in death_crosses.iterrows():
+        fig_ta.add_annotation(
+            x=row_data['Date'], y=row_data['SMA50'],
+            text="▼ 데드크로스", showarrow=True, arrowhead=1, ax=0, ay=-30,
+            font=dict(color="red", size=11), arrowcolor="red", row=2, col=1
+        )
     
     # 3. RSI
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['RSI'], name='RSI', line=dict(color='purple')), row=3, col=1)
