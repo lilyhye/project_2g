@@ -469,8 +469,8 @@ with ta_col1:
         - **해석**: 가격이 상단 밴드에 닿으면 '과열(매도 검토)', 하단 밴드에 닿으면 '과매도(매수 검토)'로 봅니다.
         
         **2. 이동평균선 (SMA 50/200)**
-        - **골든크로스(▲)**: 단기선(50일)이 장기선(200일)을 위로 뚫을 때 -> 강력한 상승 신호
-        - **데드크로스(▼)**: 단기선이 장기선을 아래로 뚫을 때 -> 하락 추세 시작
+        - **골든크로스(▲)**: 단기선(50일)이 장기선(200일)을 위로 뚫을 때 -> 강력한 상승 신호(매수타이밍)
+        - **데드크로스(▼)**: 단기선이 장기선을 아래로 뚫을 때 -> 하락 추세 시작(매도타이밍)
         
         **3. RSI (상대강도지수)**
         - 0~100 사이의 수치로 매수/매도 강도를 나타냅니다.
@@ -506,14 +506,14 @@ with ta_col2:
     for _, row_data in golden_crosses.iterrows():
         fig_ta.add_annotation(
             x=row_data['Date'], y=row_data['SMA50'],
-            text="▲ 골든크로스 → 매도타이밍", showarrow=True, arrowhead=1, ax=0, ay=30,
+            text="▲ 골든크로스", showarrow=True, arrowhead=1, ax=0, ay=30,
             font=dict(color="blue", size=11), arrowcolor="blue", row=2, col=1
         )
         
     for _, row_data in death_crosses.iterrows():
         fig_ta.add_annotation(
             x=row_data['Date'], y=row_data['SMA50'],
-            text="▼ 데드크로스 → 매수타이밍", showarrow=True, arrowhead=1, ax=0, ay=-30,
+            text="▼ 데드크로스", showarrow=True, arrowhead=1, ax=0, ay=-30,
             font=dict(color="red", size=11), arrowcolor="red", row=2, col=1
         )
     
