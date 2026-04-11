@@ -172,129 +172,6 @@ st.info("""
 과거 팬데믹 및 금융 시스템 위기(SVB) 패턴과 유사한 'Crisis' 국면의 진입으로 간주하며, 이에 따른 자산별 방어력과 반등 수익성을 분석합니다.
 """)
 
-# --- KPI 상단 배치 (파스텔톤 카드형 UI) ---
-latest_date_dt = df_raw['Date'].max()
-target_date = latest_date_dt.strftime('%Y-%m-%d')
-crisis_start_date = "2026-02-27"
-
-df_raw['Safe_Ret'] = (df_raw['Gold_Ret'] * 0.50 + df_raw['USD_Ret'] * 0.40 + df_raw['SP500_Ret'] * 0.10)
-df_raw['Opt_Ret'] = (df_raw['Gold_Ret'] * 0.45 + df_raw['USD_Ret'] * 0.35 + df_raw['SP500_Ret'] * 0.20)
-df_raw['Agg_Ret'] = (df_raw['Gold_Ret'] * 0.30 + df_raw['USD_Ret'] * 0.30 + df_raw['SP500_Ret'] * 0.40)
-
-today_data = df_raw[df_raw['Date'] == target_date]
-start_data = df_raw[df_raw['Date'] == crisis_start_date]
-
-if not today_data.empty and not start_data.empty:
-    s_gold, e_gold = start_data['Gold'].values[0], today_data['Gold'].values[0]
-    s_sp, e_sp = start_data['S&P500'].values[0], today_data['S&P500'].values[0]
-    s_usd, e_usd = start_data['USD'].values[0], today_data['USD'].values[0]
-    
-    gold_perf = (e_gold / s_gold) - 1
-    sp500_perf = (e_sp / s_sp) - 1
-    usd_perf = (e_usd / s_usd) - 1
-    
-    crisis_mask = (df_raw['Date'] >= crisis_start_date) & (df_raw['Date'] <= target_date)
-    crisis_period_df = df_raw[crisis_mask]
-    
-    safe_cum_perf = (1 + crisis_period_df['Safe_Ret']).prod() - 1
-    opt_cum_perf = (1 + crisis_period_df['Opt_Ret']).prod() - 1
-    agg_cum_perf = (1 + crisis_period_df['Agg_Ret']).prod() - 1
-else:
-    s_gold = e_gold = s_sp = e_sp = s_usd = e_usd = 0
-    gold_perf = sp500_perf = usd_perf = 0
-    safe_cum_perf = opt_cum_perf = agg_cum_perf = 0
-
-st.markdown("""
-<style>
-.kpi-card {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-    border: 1px solid #f1f3f5;
-    text-align: center;
-    margin-bottom: 20px;
-    transition: transform 0.2s ease-in-out;
-}
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-.kpi-title {
-    color: #868e96;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-.kpi-value {
-    color: #343a40;
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-.kpi-delta-box {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-}
-.kpi-delta-up { /* 상승: 빨강 */
-    color: #fa5252;
-    background-color: #ffe3e3;
-}
-.kpi-delta-down { /* 하락: 파랑 */
-    color: #339af0;
-    background-color: #e7f5ff;
-}
-.kpi-delta-neutral {
-    color: #868e96;
-    background-color: #f1f3f5;
-}
-</style>
-""", unsafe_allow_html=True)
-
-def create_kpi_card(title, value, delta_perf):
-    if delta_perf > 0:
-        delta_class = "kpi-delta-up"
-        icon = "▲"
-    elif delta_perf < 0:
-        delta_class = "kpi-delta-down"
-        icon = "▼"
-    else:
-        delta_class = "kpi-delta-neutral"
-        icon = "-"
-    
-    delta_str = f"{icon} {abs(delta_perf)*100:.2f}%"
-    
-    return f'''
-    <div class="kpi-card">
-        <div class="kpi-title">{title}</div>
-        <div class="kpi-value">{value}</div>
-        <div class="kpi-delta-box {delta_class}">{delta_str}</div>
-    </div>
-    '''
-
-st.markdown("### 📊 핵심 위기 지표 (2/27 미-이란 전쟁 발발 이후 누적 기준)")
-
-kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
-with kpi_col1:
-    st.markdown(create_kpi_card("금 (Gold)", f"${e_gold:,.1f}", gold_perf), unsafe_allow_html=True)
-with kpi_col2:
-    st.markdown(create_kpi_card("S&P 500", f"{e_sp:,.1f} pt", sp500_perf), unsafe_allow_html=True)
-with kpi_col3:
-    st.markdown(create_kpi_card("달러 인덱스 (USD)", f"{e_usd:,.2f}", usd_perf), unsafe_allow_html=True)
-
-kpi_col4, kpi_col5, kpi_col6 = st.columns(3)
-with kpi_col4:
-    st.markdown(create_kpi_card("🛡️ 안정형 포트폴리오", "안전 방어", safe_cum_perf), unsafe_allow_html=True)
-with kpi_col5:
-    st.markdown(create_kpi_card("⭐ 최적 추천형 포트폴리오", "상승 균형", opt_cum_perf), unsafe_allow_html=True)
-with kpi_col6:
-    st.markdown(create_kpi_card("🔥 공격형 포트폴리오", "적극 반등", agg_cum_perf), unsafe_allow_html=True)
-
-st.markdown("---")
-
 # 4. 차트 레이아웃
 # Row 1: 누적 수익률
 st.markdown("### 📈 Chart 1: 자산별 누적 수익률 (2020 - 2026)")
@@ -309,12 +186,12 @@ events = {
     "SVB 파산": "2023-03-10",
     "엔 캐리 청산": "2024-08-05",
     "관세 국면": "2025-04-02",
-    "미-이란 전쟁(시나리오)": "2026-02-27"
+    "미-이란 전쟁": "2026-02-27"
 }
 
 for name, date in events.items():
     fig1.add_vline(x=date, line_width=1.5, line_dash="dash", line_color="gray")
-    fig1.add_annotation(x=date, y=1, yref="paper", text=name, showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=10))
+    fig1.add_annotation(x=date, y=1, yref="paper", text=name, showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=13))
 
 fig1.update_layout(legend_title="자산구분", hovermode="x unified")
 fig1.update_xaxes(range=['2020-01-01', df_raw['Date'].max()])
@@ -359,7 +236,7 @@ fig4.update_xaxes(range=['2020-01-01', df_raw['Date'].max()])
 
 for name, date in events.items():
     fig4.add_vline(x=date, line_width=1.5, line_dash="dash", line_color="gray")
-    fig4.add_annotation(x=date, y=1, yref="paper", text=name, showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=10))
+    fig4.add_annotation(x=date, y=1, yref="paper", text=name, showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=13))
 
 st.plotly_chart(fig4, use_container_width=True)
 
@@ -402,12 +279,49 @@ with p_col3:
 
 st.markdown("---")
 
-# Row 5: 최근 30일 구간 성과 시각화
-st.markdown(f"### 🎯 Chart 5: 투자 성향별 포트폴리오 실적 추이 ({target_date} 기준)")
+# Row 5: 실전 성과 분석 (최신 일자 기준)
+latest_date_dt = df_raw['Date'].max()
+target_date = latest_date_dt.strftime('%Y-%m-%d')
+date_display = f"{latest_date_dt.month}/{latest_date_dt.day}"
+
+st.markdown(f"### 🎯 Chart 5: 투자 성향별 포트폴리오 실적 비교 ({target_date} 기준)")
+
+# 포트폴리오별 수익률 계산 필드 생성
+df_raw['Safe_Ret'] = (df_raw['Gold_Ret'] * 0.50 + df_raw['USD_Ret'] * 0.40 + df_raw['SP500_Ret'] * 0.10)
+df_raw['Opt_Ret'] = (df_raw['Gold_Ret'] * 0.45 + df_raw['USD_Ret'] * 0.35 + df_raw['SP500_Ret'] * 0.20)
+df_raw['Agg_Ret'] = (df_raw['Gold_Ret'] * 0.30 + df_raw['USD_Ret'] * 0.30 + df_raw['SP500_Ret'] * 0.40)
 
 recent_df = df_raw.tail(30).copy()
+today_data = df_raw[df_raw['Date'] == target_date]
 
-if not recent_df.empty:
+# 6. 2026 미국-이란 전쟁 위기 구간 개별 자산 성과 계산
+if not today_data.empty:
+    crisis_start_date = "2026-02-27"
+    start_data = df_raw[df_raw['Date'] == crisis_start_date]
+    
+    if not start_data.empty:
+        # 시작가 및 종료가 추출
+        s_gold, e_gold = start_data['Gold'].values[0], today_data['Gold'].values[0]
+        s_sp, e_sp = start_data['S&P500'].values[0], today_data['S&P500'].values[0]
+        s_usd, e_usd = start_data['USD'].values[0], today_data['USD'].values[0]
+        
+        # 변동률 계산
+        gold_perf = (e_gold / s_gold) - 1
+        sp500_perf = (e_sp / s_sp) - 1
+        usd_perf = (e_usd / s_usd) - 1
+
+        st.markdown("#### 🪙 개별 자산 위기 성과")
+        a1, a2, a3 = st.columns(3)
+        with a1: st.metric("금 (Gold)", f"{(gold_perf*100):.2f}%", f"{gold_perf*100:.2f}%", delta_color="normal")
+        with a2: st.metric("S&P 500", f"{(sp500_perf*100):.2f}%", f"{sp500_perf*100:.2f}%", delta_color="normal")
+        with a3: st.metric("달러 (USD)", f"{(usd_perf*100):.2f}%", f"{usd_perf*100:.2f}%", delta_color="normal")
+
+    st.markdown(f"#### 🥧 투자 성향별 포트폴리오 수익률 ({date_display})")
+    m1, m2, m3 = st.columns(3)
+    with m1: st.metric(f"🛡️ 안정형 ({date_display})", f"{(today_data['Safe_Ret'].values[0]*100):.2f}%", "Safe Strategy")
+    with m2: st.metric(f"⭐ 최적 추천형 ({date_display})", f"{(today_data['Opt_Ret'].values[0]*100):.2f}%", "Optimal Strategy")
+    with m3: st.metric(f"🔥 공격형 ({date_display})", f"{(today_data['Agg_Ret'].values[0]*100):.2f}%", "Aggressive Strategy")
+
     # 최근 30일 누적 수익률 시뮬레이션
     recent_df['Safe_Cum'] = (1 + recent_df['Safe_Ret']).cumprod() - 1
     recent_df['Opt_Cum'] = (1 + recent_df['Opt_Ret']).cumprod() - 1
@@ -432,7 +346,7 @@ if not recent_df.empty:
     
     # 미-이란 전쟁 발발일 화살표 표기
     fig5.add_vline(x="2026-02-27", line_width=1.5, line_dash="dash", line_color="red")
-    fig5.add_annotation(x="2026-02-27", y=1, yref="paper", text="미-이란 전쟁 발발", showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="red", size=10))
+    fig5.add_annotation(x="2026-02-27", y=1, yref="paper", text="💥미-이란 전쟁", showarrow=True, arrowhead=1, ax=0, ay=-30, font=dict(color="gray", size=13))
     
     st.plotly_chart(fig5, use_container_width=True)
     
