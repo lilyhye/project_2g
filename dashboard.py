@@ -542,10 +542,10 @@ with ta_col2:
 st.caption("※ 본 분석은 기술적 지표에 기반한 참고 자료이며, 투자 결정의 최종 책임은 투자자 본인에게 있습니다.")
 
 st.markdown("""
-<div style="text-align: right; font-size: 0.9em; color: #888888; margin-top: 50px;">
-    <strong>프로젝트명</strong> : 더블-G<br>
-    <strong>팀원</strong> : 이지혜, 안은지<br>
-    <strong>작성일</strong> : 2026.04.13<br>
-    <strong>데이터 출처</strong> : yfinance
+<div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 25px; font-size: 0.95em; color: #d6336c; background-color: #fff0f6; border: 2px dashed #ffb8da; padding: 15px 30px; border-radius: 30px; margin-top: 50px; font-weight: 500;">
+    <span>🎀 <strong>팀명</strong> : 더블-G</span>
+    <span>🧸 <strong>팀원</strong> : 이지혜, 안은지</span>
+    <span>📅 <strong>작성일</strong> : 2026.04.13</span>
+    <span>☁️ <strong>데이터 출처</strong> : yfinance</span>
 </div>
 """, unsafe_allow_html=True)
