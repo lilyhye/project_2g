@@ -443,20 +443,16 @@ with ta_col1:
         - 0~100 사이의 수치로 매수/매도 강도를 나타냅니다.
         - **70 이상**: 과매수 구간 (단기 조정 가능성) -> 매도 신호
         - **30 이하**: 과매도 구간 (기술적 반등 가능성) -> 매수 신호
-        
-        **4. MACD**
-        - 추세의 방향과 강도를 보여주는 지표입니다.
-        - 파란색 선(MACD)이 주황색 선(Signal)을 상향 돌파하면 매수 신호로 해석합니다.
         """)
 
 with ta_col2:
     # 최근 1년(252일) 데이터 시각화하여 가독성 확보
     df_plot = df_ta.tail(252).copy()
     
-    fig_ta = make_subplots(rows=3, cols=1, shared_xaxes=True, 
+    fig_ta = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                           vertical_spacing=0.08, 
-                          row_heights=[0.5, 0.25, 0.25],
-                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드 (최근 1년)", "RSI (14)", "MACD"))
+                          row_heights=[0.7, 0.3],
+                          subplot_titles=(f"{selected_asset} 가격 및 볼린저 밴드 (최근 1년)", "RSI (14)"))
     
     # 1. 가격/BB/이평선
     fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot[selected_asset], name='Price', line=dict(color='black', width=2)), row=1, col=1)
@@ -470,10 +466,10 @@ with ta_col2:
     fig_ta.add_hline(y=70, line=dict(color="red", dash="dash"), row=2, col=1)
     fig_ta.add_hline(y=30, line=dict(color="green", dash="dash"), row=2, col=1)
     
-    # 3. MACD
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD'], name='MACD', line=dict(color='blue')), row=3, col=1)
-    fig_ta.add_trace(px_go.Scatter(x=df_plot['Date'], y=df_plot['MACD_Signal'], name='Signal', line=dict(color='orange')), row=3, col=1)
-    fig_ta.add_trace(px_go.Bar(x=df_plot['Date'], y=df_plot['MACD_Hist'], name='Histogram', marker_color='gray'), row=3, col=1)
+    # RSI 과매수/과매도 구간 배경색 추가
+    fig_ta.add_hrect(y0=70, y1=100, line_width=0, fillcolor="red", opacity=0.1, row=2, col=1)
+    fig_ta.add_hrect(y0=0, y1=30, line_width=0, fillcolor="green", opacity=0.1, row=2, col=1)
+    fig_ta.update_yaxes(range=[0, 100], row=2, col=1)
     
     fig_ta.update_layout(height=850, showlegend=True, hovermode="x unified", template="plotly_white")
     st.plotly_chart(fig_ta, use_container_width=True)
